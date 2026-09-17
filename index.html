@@ -12,7 +12,7 @@
 <body class="bg-slate-50 min-h-screen text-slate-800">
   <div class="max-w-4xl mx-auto p-4 sm:p-6">
     
-    <!-- 頁頭 (僅保留中英文主標題) -->
+    <!-- 頁頭 -->
     <header class="mb-6 bg-white rounded-xl p-6 sm:p-8 shadow-sm border border-slate-200 text-center">
       <h1 class="text-3xl sm:text-4xl font-extrabold text-slate-900 mb-2">
         🚗 家長接送車牌填報系統
@@ -20,17 +20,18 @@
       <h2 class="text-xl sm:text-2xl font-bold text-blue-600">
         Parent Pickup License Plate Registration
       </h2>
-      <!-- 隱藏的檔案上傳輸入點，供後台自動載入 -->
+      <!-- 隱藏的檔案上傳輸入點 -->
       <input type="file" id="fileInput" accept=".xlsx, .xls" class="hidden">
     </header>
 
-    <!-- 步驟 1: 電話查詢 -->
+    <!-- 步驟 1: 電話查詢 (改用藍色數字圓圈編號，英文縮小) -->
     <section class="mb-6 bg-white rounded-xl p-6 sm:p-8 shadow-sm border border-slate-200 text-center">
-      <div class="mb-5">
-        <h2 class="text-2xl sm:text-3xl font-extrabold text-slate-900 mb-2">
-          第一個步驟：請輸入家長的電話號碼
+      <div class="mb-5 flex flex-col items-center justify-center">
+        <h2 class="text-xl sm:text-2xl font-bold text-slate-900 mb-1 flex items-center gap-2">
+          <span class="w-7 h-7 rounded-full bg-blue-600 text-white flex items-center justify-center text-sm flex-shrink-0">1</span>
+          <span>請輸入家長的電話號碼</span>
         </h2>
-        <p class="text-xl sm:text-2xl font-bold text-blue-600">
+        <p class="text-base sm:text-lg font-semibold text-blue-600">
           Please enter a parent's phone number.
         </p>
       </div>
@@ -45,26 +46,26 @@
       </div>
     </section>
 
-    <!-- 步驟 2: 學生姓名帶出區 (預設顯示空白狀態) -->
+    <!-- 步驟 2: 學生姓名區 -->
     <section class="mb-6 bg-white rounded-xl p-6 shadow-sm border border-slate-200">
       <h2 class="text-lg font-bold text-slate-900 mb-3 flex items-center gap-2">
-        <span class="w-7 h-7 rounded-full bg-blue-600 text-white flex items-center justify-center text-sm">2</span>
-        第二個步驟：學生姓名 Student Name
+        <span class="w-7 h-7 rounded-full bg-blue-600 text-white flex items-center justify-center text-sm flex-shrink-0">2</span>
+        <span>學生姓名 Student Name</span>
       </h2>
 
       <!-- 學生姓名顯示框 -->
       <div id="studentList" class="min-h-[70px] p-4 bg-slate-50 rounded-lg border border-dashed border-slate-300 flex items-center justify-center text-slate-400 font-medium">
-        請先於步驟一輸入電話號碼進行查詢 Please search phone number in Step 1 first.
+        請先於步驟 1 輸入電話號碼進行查詢 Please search phone number in Step 1 first.
       </div>
     </section>
 
-    <!-- 步驟 3: 輸入車牌 (提供 5 組欄位) -->
+    <!-- 步驟 3: 輸入車牌 (5 組欄位) -->
     <section class="mb-6 bg-white rounded-xl p-6 shadow-sm border border-slate-200">
       <h2 class="text-lg font-bold text-slate-900 mb-1 flex items-center gap-2">
-        <span class="w-7 h-7 rounded-full bg-blue-600 text-white flex items-center justify-center text-sm">3</span>
-        第三個步驟：輸入車牌號碼 License Plate Entry
+        <span class="w-7 h-7 rounded-full bg-blue-600 text-white flex items-center justify-center text-sm flex-shrink-0">3</span>
+        <span>輸入車牌號碼 License Plate Entry</span>
       </h2>
-      <p class="text-xs text-slate-500 mb-4">最多可填報 5 組車牌 Fill up to 5 license plates</p>
+      <p class="text-xs text-slate-500 mb-4 ml-9">最多可填報 5 組車牌 Fill up to 5 license plates</p>
 
       <!-- 5 個車牌輸入欄位 -->
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 mb-6">
@@ -101,8 +102,8 @@
     <section class="bg-white rounded-xl p-6 shadow-sm border border-slate-200">
       <div class="flex items-center justify-between mb-4 flex-wrap gap-2">
         <h2 class="text-base sm:text-lg font-bold text-slate-900 flex items-center gap-2">
-          <span class="w-6 h-6 rounded-full bg-blue-600 text-white flex items-center justify-center text-xs">4</span>
-          已填報紀錄 Registration Records
+          <span class="w-7 h-7 rounded-full bg-blue-600 text-white flex items-center justify-center text-sm flex-shrink-0">4</span>
+          <span>已填報紀錄 Registration Records</span>
         </h2>
         <div class="flex gap-2">
           <button onclick="clearRecords()" class="text-xs text-rose-600 hover:text-rose-800 border border-rose-200 px-3 py-1.5 rounded">
@@ -227,7 +228,7 @@
     // 提交填報資料
     function submitForm() {
       if (currentMatchedStudents.length === 0) {
-        alert('請先在步驟一輸入電話並成功查詢學生！ Please search student first.');
+        alert('請先於步驟 1 輸入電話並成功查詢學生！ Please search student first.');
         return;
       }
 
