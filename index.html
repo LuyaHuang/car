@@ -24,23 +24,23 @@
       <input type="file" id="fileInput" accept=".xlsx, .xls" class="hidden">
     </header>
 
-    <!-- 步驟 1: 電話查詢 (改用藍色數字圓圈編號，英文縮小) -->
-    <section class="mb-6 bg-white rounded-xl p-6 sm:p-8 shadow-sm border border-slate-200 text-center">
-      <div class="mb-5 flex flex-col items-center justify-center">
-        <h2 class="text-xl sm:text-2xl font-bold text-slate-900 mb-1 flex items-center gap-2">
+    <!-- 步驟 1: 電話查詢 -->
+    <section class="mb-6 bg-white rounded-xl p-6 shadow-sm border border-slate-200">
+      <div class="mb-4">
+        <h2 class="text-lg font-bold text-slate-900 flex items-center gap-2">
           <span class="w-7 h-7 rounded-full bg-blue-600 text-white flex items-center justify-center text-sm flex-shrink-0">1</span>
           <span>請輸入家長的電話號碼</span>
         </h2>
-        <p class="text-base sm:text-lg font-semibold text-blue-600">
+        <p class="text-lg font-bold text-blue-600 ml-9 mt-0.5">
           Please enter a parent's phone number.
         </p>
       </div>
 
-      <div class="flex flex-col sm:flex-row gap-3 max-w-xl mx-auto">
+      <div class="flex flex-col sm:flex-row gap-3 max-w-xl">
         <input type="tel" id="phoneInput" placeholder="請輸入電話 Please enter phone" 
-               class="flex-1 border border-slate-300 rounded-lg px-4 py-3 text-lg text-center sm:text-left focus:outline-none focus:ring-2 focus:ring-blue-500">
+               class="flex-1 border border-slate-300 rounded-lg px-4 py-2.5 text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500">
         <button onclick="searchStudent()" 
-                class="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 rounded-lg font-bold text-lg transition">
+                class="bg-blue-600 hover:bg-blue-700 text-white px-8 py-2.5 rounded-lg font-bold transition">
           查詢 Search
         </button>
       </div>
@@ -48,10 +48,15 @@
 
     <!-- 步驟 2: 學生姓名區 -->
     <section class="mb-6 bg-white rounded-xl p-6 shadow-sm border border-slate-200">
-      <h2 class="text-lg font-bold text-slate-900 mb-3 flex items-center gap-2">
-        <span class="w-7 h-7 rounded-full bg-blue-600 text-white flex items-center justify-center text-sm flex-shrink-0">2</span>
-        <span>學生姓名 Student Name</span>
-      </h2>
+      <div class="mb-3">
+        <h2 class="text-lg font-bold text-slate-900 flex items-center gap-2">
+          <span class="w-7 h-7 rounded-full bg-blue-600 text-white flex items-center justify-center text-sm flex-shrink-0">2</span>
+          <span>學生姓名</span>
+        </h2>
+        <p class="text-lg font-bold text-blue-600 ml-9 mt-0.5">
+          Student Name
+        </p>
+      </div>
 
       <!-- 學生姓名顯示框 -->
       <div id="studentList" class="min-h-[70px] p-4 bg-slate-50 rounded-lg border border-dashed border-slate-300 flex items-center justify-center text-slate-400 font-medium">
@@ -61,10 +66,15 @@
 
     <!-- 步驟 3: 輸入車牌 (5 組欄位) -->
     <section class="mb-6 bg-white rounded-xl p-6 shadow-sm border border-slate-200">
-      <h2 class="text-lg font-bold text-slate-900 mb-1 flex items-center gap-2">
-        <span class="w-7 h-7 rounded-full bg-blue-600 text-white flex items-center justify-center text-sm flex-shrink-0">3</span>
-        <span>輸入車牌號碼 License Plate Entry</span>
-      </h2>
+      <div class="mb-2">
+        <h2 class="text-lg font-bold text-slate-900 flex items-center gap-2">
+          <span class="w-7 h-7 rounded-full bg-blue-600 text-white flex items-center justify-center text-sm flex-shrink-0">3</span>
+          <span>輸入車牌號碼</span>
+        </h2>
+        <p class="text-lg font-bold text-blue-600 ml-9 mt-0.5">
+          License Plate Entry
+        </p>
+      </div>
       <p class="text-xs text-slate-500 mb-4 ml-9">最多可填報 5 組車牌 Fill up to 5 license plates</p>
 
       <!-- 5 個車牌輸入欄位 -->
@@ -101,10 +111,15 @@
     <!-- 步驟 4: 已填報列表與匯出 -->
     <section class="bg-white rounded-xl p-6 shadow-sm border border-slate-200">
       <div class="flex items-center justify-between mb-4 flex-wrap gap-2">
-        <h2 class="text-base sm:text-lg font-bold text-slate-900 flex items-center gap-2">
-          <span class="w-7 h-7 rounded-full bg-blue-600 text-white flex items-center justify-center text-sm flex-shrink-0">4</span>
-          <span>已填報紀錄 Registration Records</span>
-        </h2>
+        <div>
+          <h2 class="text-lg font-bold text-slate-900 flex items-center gap-2">
+            <span class="w-7 h-7 rounded-full bg-blue-600 text-white flex items-center justify-center text-sm flex-shrink-0">4</span>
+            <span>已填報紀錄</span>
+          </h2>
+          <p class="text-lg font-bold text-blue-600 ml-9 mt-0.5">
+            Registration Records
+          </p>
+        </div>
         <div class="flex gap-2">
           <button onclick="clearRecords()" class="text-xs text-rose-600 hover:text-rose-800 border border-rose-200 px-3 py-1.5 rounded">
             清除紀錄 Clear
