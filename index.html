@@ -37,7 +37,7 @@
       </div>
 
       <div class="flex flex-col sm:flex-row gap-3 max-w-xl">
-        <input type="tel" id="phoneInput" placeholder="請輸入電話 Please enter phone" 
+        <input type="text" id="phoneInput" placeholder="請輸入電話 Please enter phone" 
                class="flex-1 border border-slate-300 rounded-lg px-4 py-2.5 text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500">
         <button onclick="searchStudent()" 
                 class="bg-blue-600 hover:bg-blue-700 text-white px-8 py-2.5 rounded-lg font-bold transition">
@@ -64,7 +64,7 @@
       </div>
     </section>
 
-    <!-- 步驟 3: 輸入車牌 (5 組欄位) -->
+    <!-- 步驟 3: 輸入車牌 (5 組欄位，修改英文標題) -->
     <section class="mb-6 bg-white rounded-xl p-6 shadow-sm border border-slate-200">
       <div class="mb-2">
         <h2 class="text-lg font-bold text-slate-900 flex items-center gap-2">
@@ -72,7 +72,7 @@
           <span>輸入車牌號碼</span>
         </h2>
         <p class="text-lg font-bold text-blue-600 ml-9 mt-0.5">
-          License Plate Entry
+          Enter License Plate Number
         </p>
       </div>
       <p class="text-xs text-slate-500 mb-4 ml-9">最多可填報 5 組車牌 Fill up to 5 license plates</p>
@@ -108,16 +108,16 @@
       </div>
     </section>
 
-    <!-- 步驟 4: 已填報列表與匯出 -->
-    <section class="bg-white rounded-xl p-6 shadow-sm border border-slate-200">
+    <!-- 管理端專區: 已填報列表與匯出 (預設隱藏 hidden) -->
+    <section id="adminSection" class="hidden bg-white rounded-xl p-6 shadow-sm border border-slate-200">
       <div class="flex items-center justify-between mb-4 flex-wrap gap-2">
         <div>
           <h2 class="text-lg font-bold text-slate-900 flex items-center gap-2">
             <span class="w-7 h-7 rounded-full bg-blue-600 text-white flex items-center justify-center text-sm flex-shrink-0">4</span>
-            <span>已填報紀錄</span>
+            <span>已填報紀錄 (管理端)</span>
           </h2>
           <p class="text-lg font-bold text-blue-600 ml-9 mt-0.5">
-            Registration Records
+            Registration Records (Admin Only)
           </p>
         </div>
         <div class="flex gap-2">
@@ -201,9 +201,22 @@
       reader.readAsArrayBuffer(file);
     });
 
-    // 查詢學生
+    // 查詢學生 (包含管理員指令檢查)
     function searchStudent() {
       const rawInput = document.getElementById('phoneInput').value.trim();
+      const adminSection = document.getElementById('adminSection');
+
+      // 檢查是否為管理員觸發指令
+      if (rawInput.toLowerCase() === 'administrator') {
+        adminSection.classList.remove('hidden');
+        renderTable();
+        alert('已開啟管理端權限！ Administrator mode enabled.');
+        return;
+      }
+
+      // 一般家長查詢時，保持管理端隱藏
+      adminSection.classList.add('hidden');
+
       const searchKey = cleanPhone(rawInput);
       const studentList = document.getElementById('studentList');
 
