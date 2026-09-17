@@ -12,14 +12,20 @@
 <body class="bg-slate-50 min-h-screen text-slate-800">
   <div class="max-w-4xl mx-auto p-4 sm:p-6">
     
-    <!-- 頁頭標題 (保留路亞標題) -->
-    <header class="mb-6 bg-white rounded-xl p-6 sm:p-8 shadow-sm border border-slate-200 text-center">
-      <h1 class="text-3xl sm:text-4xl font-extrabold text-slate-900 mb-2">
-        🚗 路亞家長接送車牌填報系統
-      </h1>
-      <h2 class="text-xl sm:text-2xl font-bold text-blue-600">
-        Luya Parent Pickup License Plate Registration
-      </h2>
+    <!-- 頁頭標題 (含 Logo) -->
+    <header class="mb-6 bg-white rounded-xl p-6 sm:p-8 shadow-sm border border-slate-200">
+      <div class="flex flex-col sm:flex-row items-center justify-center gap-4 text-center sm:text-left">
+        <!-- Logo 圖示 (可放置於 index.html 同目錄) -->
+        <img src="LUYA_LOGO.png" alt="LUYA Logo" class="h-16 sm:h-20 w-auto object-contain flex-shrink-0" onerror="this.style.display='none'">
+        <div>
+          <h1 class="text-2xl sm:text-3xl font-extrabold text-slate-900 mb-1">
+            路亞家長接送車牌填報系統
+          </h1>
+          <h2 class="text-base sm:text-xl font-bold text-blue-600">
+            Luya Parent Pickup License Plate Registration
+          </h2>
+        </div>
+      </div>
       <!-- 隱藏的檔案上傳輸入點 -->
       <input type="file" id="fileInput" accept=".xlsx, .xls" class="hidden">
     </header>
@@ -131,7 +137,7 @@
           </p>
         </div>
         <div class="flex gap-2">
-          <!-- 改為紅底白字 + 骷髏頭圖示 -->
+          <!-- 紅底白字 + 骷髏頭圖示 -->
           <button onclick="clearRecords()" class="bg-rose-600 hover:bg-rose-700 text-white text-xs px-3 py-1.5 rounded font-bold transition flex items-center gap-1 shadow-sm">
             💀 清除全部 Clear All
           </button>
