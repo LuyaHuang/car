@@ -12,13 +12,15 @@
 <body class="bg-slate-50 min-h-screen text-slate-800">
   <div class="max-w-4xl mx-auto p-4 sm:p-6">
     
-    <!-- 頁頭標題 (含 Logo) -->
-    <header class="mb-6 bg-white rounded-xl p-6 sm:p-8 shadow-sm border border-slate-200">
-      <div class="flex flex-col sm:flex-row items-center justify-center gap-4 text-center sm:text-left">
-        <!-- Logo 圖示 (可放置於 index.html 同目錄) -->
-        <img src="LUYA_LOGO.png" alt="LUYA Logo" class="h-16 sm:h-20 w-auto object-contain flex-shrink-0" onerror="this.style.display='none'">
-        <div>
-          <h1 class="text-2xl sm:text-3xl font-extrabold text-slate-900 mb-1">
+    <!-- 頁頭標題 (含原圖 Logo、置中文字與加大框框) -->
+    <header class="mb-6 bg-white rounded-xl p-8 sm:p-12 shadow-sm border border-slate-200">
+      <div class="flex flex-col sm:flex-row items-center justify-center gap-6 text-center">
+        <!-- Logo 圖示 (保持原圖大小不縮放) -->
+        <img src="LUYA_LOGO.png" alt="LUYA Logo" class="flex-shrink-0 max-w-full h-auto" onerror="this.style.display='none'">
+        
+        <!-- 置中對齊的文字區塊 -->
+        <div class="text-center">
+          <h1 class="text-2xl sm:text-3xl font-extrabold text-slate-900 mb-2">
             路亞家長接送車牌填報系統
           </h1>
           <h2 class="text-base sm:text-xl font-bold text-blue-600">
@@ -351,7 +353,7 @@
           }
         }
 
-        // 隱藏填報區塊，切換至感謝頁面 (不彈出確認視窗)
+        // 隱藏填報區塊，切換至感謝頁面
         document.getElementById('formSection').classList.add('hidden');
         document.getElementById('thankYouSection').classList.remove('hidden');
         window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -426,11 +428,9 @@
 
     // 6. 清除全部資料 (Firebase - 雙重確認機制)
     window.clearRecords = async function() {
-      // 第一道確認
       const firstConfirm = confirm('確定要刪除 Firebase 上的所有填報紀錄嗎？ Clear all records from database?');
       if (!firstConfirm) return;
 
-      // 第二道二次確認 (跳出指定提示字串)
       const secondConfirm = confirm('是否確認？資料救不回來');
       if (!secondConfirm) return;
 
