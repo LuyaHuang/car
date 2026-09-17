@@ -131,8 +131,9 @@
           </p>
         </div>
         <div class="flex gap-2">
-          <button onclick="clearRecords()" class="text-xs text-rose-600 hover:text-rose-800 border border-rose-200 px-3 py-1.5 rounded">
-            清除全部 Clear All
+          <!-- 改為紅底白字 + 骷髏頭圖示 -->
+          <button onclick="clearRecords()" class="bg-rose-600 hover:bg-rose-700 text-white text-xs px-3 py-1.5 rounded font-bold transition flex items-center gap-1 shadow-sm">
+            💀 清除全部 Clear All
           </button>
           <button onclick="exportToExcel()" class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs px-4 py-1.5 rounded font-medium transition flex items-center gap-1">
             📥 匯出 Excel Export
@@ -417,21 +418,27 @@
       }
     };
 
-    // 6. 清除全部資料 (Firebase)
+    // 6. 清除全部資料 (Firebase - 雙重確認機制)
     window.clearRecords = async function() {
-      if (confirm('確定要刪除 Firebase 上的所有填報紀錄嗎？ Clear all records from database?')) {
-        try {
-          const snapshot = await getDocs(collection(db, "lpr_records"));
-          const batch = writeBatch(db);
-          snapshot.docs.forEach((docSnap) => {
-            batch.delete(docSnap.ref);
-          });
-          await batch.commit();
-          alert('已清空所有紀錄！ All records cleared.');
-        } catch (err) {
-          console.error("清除失敗：", err);
-          alert("清空資料失敗！");
-        }
+      // 第一道確認
+      const firstConfirm = confirm('確定要刪除 Firebase 上的所有填報紀錄嗎？ Clear all records from database?');
+      if (!firstConfirm) return;
+
+      // 第二道二次確認 (跳出指定提示字串)
+      const secondConfirm = confirm('是否確認？資料救不回來');
+      if (!secondConfirm) return;
+
+      try {
+        const snapshot = await getDocs(collection(db, "lpr_records"));
+        const batch = writeBatch(db);
+        snapshot.docs.forEach((docSnap) => {
+          batch.delete(docSnap.ref);
+        });
+        await batch.commit();
+        alert('已清空所有紀錄！ All records cleared.');
+      } catch (err) {
+        console.error("清除失敗：", err);
+        alert("清空資料失敗！");
       }
     };
 
