@@ -64,7 +64,7 @@
       </div>
     </section>
 
-    <!-- 步驟 3: 輸入車牌 (修改後標題與直列 5 列) -->
+    <!-- 步驟 3: 輸入車牌 (直列 5 列) -->
     <section class="mb-6 bg-white rounded-xl p-6 shadow-sm border border-slate-200">
       <div class="mb-4">
         <h2 class="text-lg font-bold text-slate-900 flex items-center gap-2">
@@ -80,7 +80,7 @@
       <div class="space-y-3 mb-6 max-w-xl">
         <div class="flex flex-col sm:flex-row sm:items-center gap-2">
           <label class="w-32 text-sm font-semibold text-slate-700 flex-shrink-0">車牌 1 / Plate 1</label>
-          <input type="text" id="plate1" placeholder="例: ABC-1234" class="plate-input flex-1 border border-slate-300 rounded-lg px-3 py-2 uppercase focus:ring-2 focus:ring-blue-500">
+          <input type="text" id="plate1" placeholder="例: ABC-1234 或 1234-AB" class="plate-input flex-1 border border-slate-300 rounded-lg px-3 py-2 uppercase focus:ring-2 focus:ring-blue-500">
         </div>
         <div class="flex flex-col sm:flex-row sm:items-center gap-2">
           <label class="w-32 text-sm font-semibold text-slate-700 flex-shrink-0">車牌 2 / Plate 2</label>
@@ -101,7 +101,7 @@
       </div>
 
       <div class="text-center">
-        <button onclick="submitForm()" class="bg-emerald-600 hover:bg-emerald-700 text-white text-lg px-10 py-3 rounded-lg font-bold transition shadow-sm">
+        <button id="submitBtn" onclick="submitForm()" class="bg-emerald-600 hover:bg-emerald-700 text-white text-lg px-10 py-3 rounded-lg font-bold transition shadow-sm">
           提交填報 Submit
         </button>
       </div>
@@ -113,7 +113,7 @@
         <div>
           <h2 class="text-lg font-bold text-slate-900 flex items-center gap-2">
             <span class="w-7 h-7 rounded-full bg-blue-600 text-white flex items-center justify-center text-sm flex-shrink-0">4</span>
-            <span>已填報紀錄 (管理端)</span>
+            <span>已填報紀錄 (管理端 - Firebase 同步)</span>
           </h2>
           <p class="text-lg font-bold text-blue-600 ml-9 mt-0.5">
             Registration Records (Admin Only)
@@ -121,7 +121,7 @@
         </div>
         <div class="flex gap-2">
           <button onclick="clearRecords()" class="text-xs text-rose-600 hover:text-rose-800 border border-rose-200 px-3 py-1.5 rounded">
-            清除紀錄 Clear
+            清除全部 Clear All
           </button>
           <button onclick="exportToExcel()" class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs px-4 py-1.5 rounded font-medium transition flex items-center gap-1">
             📥 匯出 Excel Export
@@ -137,7 +137,7 @@
               <th class="p-3">學號 ID</th>
               <th class="p-3">學生姓名 Name</th>
               <th class="p-3">填報電話 Phone</th>
-              <th class="p-3">車牌號碼 Plate</th>
+              <th class="p-3">車牌號碼 Plate(s)</th>
               <th class="p-3">填報時間 Time</th>
               <th class="p-3 text-center">操作 Action</th>
             </tr>
@@ -152,25 +152,37 @@
     </section>
   </div>
 
-  <script>
+  <!-- Firebase SDK JS 模組化引入 -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+    import { 
+      getFirestore, collection, addDoc, setDoc, deleteDoc, doc, onSnapshot, writeBatch, getDocs 
+    } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+    // Firebase 配置
+    const firebaseConfig = {
+      apiKey: "AIzaSyBAHa9zHfZPyMPu8Bv-Q3eCV4-D0O5LegY",
+      authDomain: "alpr-d18be.firebaseapp.com",
+      projectId: "alpr-d18be",
+      storageBucket: "alpr-d18be.firebasestorage.app",
+      messagingSenderId: "327985661665",
+      appId: "1:327985661665:web:47d2391caa79d719a4d9a0"
+    };
+
+    // 初始化 Firebase 與 Firestore
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
     let studentData = [];
     let currentMatchedStudents = [];
-    let submittedRecords = JSON.parse(localStorage.getItem('lpr_records') || '[]');
+    let submittedRecords = []; // 儲存從 Firebase 讀取的紀錄
 
     window.addEventListener('DOMContentLoaded', () => {
       fetchData();
-      renderTable();
+      listenToFirebase();
     });
 
-    // 清理電話格式
-    function cleanPhone(p) {
-      if (!p) return '';
-      let s = String(p).replace(/\D/g, '');
-      if (s.length === 10 && s.startsWith('0')) s = s.substring(1);
-      return s;
-    }
-
-    // 自動讀取 LPR.xlsx
+    // 自動讀取同目錄下的 LPR.xlsx
     async function fetchData() {
       try {
         const response = await fetch('./LPR.xlsx');
@@ -191,21 +203,30 @@
       studentData = XLSX.utils.sheet_to_json(worksheet);
     }
 
-    // 手動上傳檔案處理
-    document.getElementById('fileInput').addEventListener('change', (e) => {
-      const file = e.target.files[0];
-      if (!file) return;
-      const reader = new FileReader();
-      reader.onload = (evt) => parseExcel(evt.target.result);
-      reader.readAsArrayBuffer(file);
-    });
+    // 清理電話號碼格式
+    function cleanPhone(p) {
+      if (!p) return '';
+      let s = String(p).replace(/\D/g, '');
+      if (s.length === 10 && s.startsWith('0')) s = s.substring(1);
+      return s;
+    }
 
-    // 查詢學生 (包含管理員指令檢查)
-    function searchStudent() {
+    // 寬鬆車牌檢查函數 (相容 6 碼舊車牌與 7 碼新車牌)
+    function isValidPlate(plate) {
+      if (!plate) return true;
+      const clean = plate.trim().toUpperCase();
+      // 去除連字號與空白，計算純英數字字元數量
+      const raw = clean.replace(/[^A-Z0-9]/g, '');
+      // 舊車牌為 6 碼、新車牌為 7 碼，允許 5 至 8 碼的寬鬆範圍
+      return raw.length >= 5 && raw.length <= 8;
+    }
+
+    // 1. 查詢學生
+    window.searchStudent = function() {
       const rawInput = document.getElementById('phoneInput').value.trim();
       const adminSection = document.getElementById('adminSection');
 
-      // 檢查是否為管理員觸發指令
+      // 檢查是否為管理員指令
       if (rawInput.toLowerCase() === 'administrator') {
         adminSection.classList.remove('hidden');
         renderTable();
@@ -213,9 +234,7 @@
         return;
       }
 
-      // 一般家長查詢時，保持管理端隱藏
       adminSection.classList.add('hidden');
-
       const searchKey = cleanPhone(rawInput);
       const studentList = document.getElementById('studentList');
 
@@ -236,10 +255,10 @@
         return;
       }
 
-      // 帶出學生姓名 (已移除學號顯示)
+      // 帶出學生姓名 (不顯示學號)
       studentList.className = "space-y-2";
       studentList.innerHTML = currentMatchedStudents.map(s => {
-        const fullName = `${s['姓名']} ${s['FName']} ${s['LName']}`;
+        const fullName = `${s['姓名'] || ''} ${s['FName'] || ''} ${s['LName'] || ''}`.trim();
         return `
           <div class="p-3 bg-blue-50 border border-blue-200 rounded-lg flex items-center gap-3">
             <span class="bg-blue-600 text-white text-sm px-2.5 py-1 rounded font-bold">${s['HR']}</span>
@@ -247,59 +266,107 @@
           </div>
         `;
       }).join('');
-    }
+    };
 
-    // 提交填報資料
-    function submitForm() {
+    // 2. 寫入資料庫 (Submit to Firebase Firestore)
+    window.submitForm = async function() {
       if (currentMatchedStudents.length === 0) {
         alert('請先於步驟 1 輸入電話並成功查詢學生！ Please search student first.');
         return;
       }
 
-      // 收集 5 個直列欄位中已填寫的車牌
-      const plateInputs = [
+      const rawInputs = [
         document.getElementById('plate1').value.trim().toUpperCase(),
         document.getElementById('plate2').value.trim().toUpperCase(),
         document.getElementById('plate3').value.trim().toUpperCase(),
         document.getElementById('plate4').value.trim().toUpperCase(),
         document.getElementById('plate5').value.trim().toUpperCase()
-      ].filter(p => p !== '');
+      ];
 
-      if (plateInputs.length === 0) {
+      const filledPlates = rawInputs.filter(p => p !== '');
+
+      if (filledPlates.length === 0) {
         alert('請至少輸入一組車牌號碼！ Please enter at least one license plate number.');
         return;
       }
 
+      // 寬鬆車牌格式驗證
+      for (let i = 0; i < rawInputs.length; i++) {
+        const p = rawInputs[i];
+        if (p !== '' && !isValidPlate(p)) {
+          alert(`車牌 ${i + 1} 格式輸入有誤（舊車牌 6 碼、新車牌 7 碼，請輸入英數字，例如：1234-AB 或 ABC-1234）。\nInvalid format for Plate ${i + 1}.`);
+          return;
+        }
+      }
+
       const rawPhone = document.getElementById('phoneInput').value.trim();
       const timeStr = new Date().toLocaleString('zh-TW');
+      const submitBtn = document.getElementById('submitBtn');
 
-      // 針對每個學生與每個填寫的車牌新增紀錄
-      currentMatchedStudents.forEach(s => {
-        const fullName = `${s['姓名']} ${s['FName']} ${s['LName']}`;
-        plateInputs.forEach(plate => {
-          submittedRecords.push({
-            '班級': s['HR'],
-            '學號': s['學號'],
+      submitBtn.disabled = true;
+      submitBtn.innerText = '儲存中 Saving...';
+
+      try {
+        // 針對匹配的每個學生寫入資料庫 (覆蓋更新防止重複紀錄)
+        for (const s of currentMatchedStudents) {
+          const fullName = `${s['姓名'] || ''} ${s['FName'] || ''} ${s['LName'] || ''}`.trim();
+          const studentId = String(s['學號'] || '');
+
+          const docData = {
+            ...s, // 完整保留 LPR.xlsx 的欄位
             '學生姓名': fullName,
             '填報電話': rawPhone,
-            '車牌號碼': plate,
-            '填報時間': timeStr
+            'Plate 1': rawInputs[0] || '',
+            'Plate 2': rawInputs[1] || '',
+            'Plate 3': rawInputs[2] || '',
+            'Plate 4': rawInputs[3] || '',
+            'Plate 5': rawInputs[4] || '',
+            '填報時間': timeStr,
+            'timestamp': Date.now()
+          };
+
+          if (studentId) {
+            await setDoc(doc(db, "lpr_records", studentId), docData);
+          } else {
+            await addDoc(collection(db, "lpr_records"), docData);
+          }
+        }
+
+        alert(`成功儲存至 Firebase 資料庫！ Saved successfully!`);
+
+        // 清空車牌欄位
+        for (let i = 1; i <= 5; i++) {
+          document.getElementById(`plate${i}`).value = '';
+        }
+      } catch (error) {
+        console.error("寫入資料庫失敗：", error);
+        alert("資料寫入失敗，請檢查 Firebase 設定或網路連線！");
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.innerText = '提交填報 Submit';
+      }
+    };
+
+    // 3. 即時監聽 Firebase 資料庫變化
+    function listenToFirebase() {
+      onSnapshot(collection(db, "lpr_records"), (snapshot) => {
+        submittedRecords = [];
+        snapshot.forEach((docSnap) => {
+          submittedRecords.push({
+            id: docSnap.id,
+            ...docSnap.data()
           });
         });
+
+        // 按時間倒序排序 (最新填報的在最前面)
+        submittedRecords.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
+        renderTable();
+      }, (error) => {
+        console.error("即時同步資料失敗：", error);
       });
-
-      localStorage.setItem('lpr_records', JSON.stringify(submittedRecords));
-      renderTable();
-
-      alert(`成功儲存填報資料！ Saved successfully!`);
-      
-      // 清空車牌欄位
-      for (let i = 1; i <= 5; i++) {
-        document.getElementById(`plate${i}`).value = '';
-      }
     }
 
-    // 渲染表格內容
+    // 4. 渲染表格內容
     function renderTable() {
       const tbody = document.getElementById('recordsTable');
       if (submittedRecords.length === 0) {
@@ -307,53 +374,108 @@
         return;
       }
 
-      tbody.innerHTML = submittedRecords.map((r, index) => `
-        <tr class="hover:bg-slate-50">
-          <td class="p-3 font-medium">${r['班級']}</td>
-          <td class="p-3 text-slate-600">${r['學號']}</td>
-          <td class="p-3 font-medium text-slate-900">${r['學生姓名']}</td>
-          <td class="p-3 text-slate-600">${r['填報電話']}</td>
-          <td class="p-3 font-bold text-blue-700">${r['車牌號碼']}</td>
-          <td class="p-3 text-xs text-slate-500">${r['填報時間']}</td>
-          <td class="p-3 text-center">
-            <button onclick="deleteRecord(${index})" class="text-xs text-rose-500 hover:text-rose-700">刪除 Delete</button>
-          </td>
-        </tr>
-      `).join('');
+      tbody.innerHTML = submittedRecords.map((r) => {
+        const fullName = r['學生姓名'] || `${r['姓名'] || ''} ${r['FName'] || ''} ${r['LName'] || ''}`.trim();
+        const platesList = [
+          r['Plate 1'], r['Plate 2'], r['Plate 3'], r['Plate 4'], r['Plate 5'], r['車牌號碼']
+        ].filter(p => p && p.trim() !== '').join(', ');
+
+        return `
+          <tr class="hover:bg-slate-50">
+            <td class="p-3 font-medium">${r['HR'] || r['班級'] || ''}</td>
+            <td class="p-3 text-slate-600">${r['學號'] || ''}</td>
+            <td class="p-3 font-medium text-slate-900">${fullName}</td>
+            <td class="p-3 text-slate-600">${r['填報電話'] || ''}</td>
+            <td class="p-3 font-bold text-blue-700">${platesList}</td>
+            <td class="p-3 text-xs text-slate-500">${r['填報時間'] || ''}</td>
+            <td class="p-3 text-center">
+              <button onclick="deleteRecord('${r.id}')" class="text-xs text-rose-500 hover:text-rose-700">刪除 Delete</button>
+            </td>
+          </tr>
+        `;
+      }).join('');
     }
 
-    // 刪除單筆紀錄
-    function deleteRecord(index) {
-      if (confirm('確定要刪除此筆紀錄嗎？ Delete this record?')) {
-        submittedRecords.splice(index, 1);
-        localStorage.setItem('lpr_records', JSON.stringify(submittedRecords));
-        renderTable();
+    // 5. 刪除單筆資料 (Firebase)
+    window.deleteRecord = async function(docId) {
+      if (confirm('確定要從 Firebase 刪除此筆紀錄嗎？ Delete this record?')) {
+        try {
+          await deleteDoc(doc(db, "lpr_records", docId));
+        } catch (err) {
+          console.error("刪除失敗：", err);
+          alert("刪除紀錄失敗！");
+        }
       }
-    }
+    };
 
-    // 清除全部紀錄
-    function clearRecords() {
-      if (confirm('確定要清除所有填報紀錄嗎？ Clear all records?')) {
-        submittedRecords = [];
-        localStorage.removeItem('lpr_records');
-        renderTable();
+    // 6. 清除全部資料 (Firebase)
+    window.clearRecords = async function() {
+      if (confirm('確定要刪除 Firebase 上的所有填報紀錄嗎？ Clear all records from database?')) {
+        try {
+          const snapshot = await getDocs(collection(db, "lpr_records"));
+          const batch = writeBatch(db);
+          snapshot.docs.forEach((docSnap) => {
+            batch.delete(docSnap.ref);
+          });
+          await batch.commit();
+          alert('已清空所有紀錄！ All records cleared.');
+        } catch (err) {
+          console.error("清除失敗：", err);
+          alert("清空資料失敗！");
+        }
       }
-    }
+    };
 
-    // 匯出成 Excel (.xlsx)
-    function exportToExcel() {
-      if (submittedRecords.length === 0) {
+    // 7. 將資料庫內容匯出成 Excel (.xlsx) (完全對照 LPR.xlsx + 追加 Plate 1~5 欄位)
+    window.exportToExcel = function() {
+      if (submittedRecords.length === 0 && studentData.length === 0) {
         alert('目前尚無紀錄可匯出！ No records to export.');
         return;
       }
 
-      const worksheet = XLSX.utils.json_to_sheet(submittedRecords);
+      // 建立已填報紀錄之對照表 (以學號為 Key)
+      const recordMap = {};
+      submittedRecords.forEach(r => {
+        const studentId = String(r['學號'] || r['studentId'] || '');
+        if (studentId) {
+          recordMap[studentId] = r;
+        }
+      });
+
+      let exportData = [];
+
+      if (studentData.length > 0) {
+        // 以原始 LPR.xlsx 為基礎，保持完全一樣的欄位順序，並於末端追加欄位
+        exportData = studentData.map(s => {
+          const studentId = String(s['學號'] || '');
+          const reg = recordMap[studentId] || {};
+
+          return {
+            ...s, // 保留 LPR.xlsx 原始的所有欄位名稱與順序
+            '填報電話': reg['填報電話'] || '',
+            'Plate 1': reg['Plate 1'] || (reg['車牌號碼'] || ''),
+            'Plate 2': reg['Plate 2'] || '',
+            'Plate 3': reg['Plate 3'] || '',
+            'Plate 4': reg['Plate 4'] || '',
+            'Plate 5': reg['Plate 5'] || '',
+            '填報時間': reg['填報時間'] || ''
+          };
+        });
+      } else {
+        // 若找不到 LPR.xlsx 模板，則導出 Firebase 已填報紀錄
+        exportData = submittedRecords.map(r => {
+          const { id, timestamp, ...cleanR } = r;
+          return cleanR;
+        });
+      }
+
+      const worksheet = XLSX.utils.json_to_sheet(exportData);
       const workbook = XLSX.utils.book_new();
       XLSX.utils.book_append_sheet(workbook, worksheet, "接送車牌登記表");
 
       const fileName = `Parent_Pickup_Registration_${new Date().toISOString().slice(0,10)}.xlsx`;
       XLSX.writeFile(workbook, fileName);
-    }
+    };
   </script>
 </body>
 </html>
