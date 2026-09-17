@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>家長接送車牌填報系統 Parent Pickup License Plate Registration</title>
-  <!-- Tailwind CSS CDN (畫面樣式) -->
+  <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- SheetJS CDN (讀取與匯出 Excel 檔) -->
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
@@ -12,80 +12,96 @@
 <body class="bg-slate-50 min-h-screen text-slate-800">
   <div class="max-w-4xl mx-auto p-4 sm:p-6">
     
-    <!-- 頁頭資訊 (加大字體 + 置中對齊 + 中英文標題) -->
+    <!-- 頁頭 (僅保留中英文主標題) -->
     <header class="mb-6 bg-white rounded-xl p-6 sm:p-8 shadow-sm border border-slate-200 text-center">
       <h1 class="text-3xl sm:text-4xl font-extrabold text-slate-900 mb-2">
         🚗 家長接送車牌填報系統
       </h1>
-      <h2 class="text-xl sm:text-2xl font-bold text-blue-600 mb-3">
+      <h2 class="text-xl sm:text-2xl font-bold text-blue-600">
         Parent Pickup License Plate Registration
       </h2>
-      <p class="text-slate-600 text-sm sm:text-base">
-        請輸入爸爸或媽媽的電話號碼，查詢學生資料並填報接送車牌。
-      </p>
-      
-      <div class="mt-6 pt-4 border-t border-slate-100 flex flex-wrap items-center justify-between gap-3 text-xs sm:text-sm text-left">
-        <div class="flex items-center gap-2">
-          <span class="font-medium text-slate-700">學生名冊狀態 Roster Status:</span>
-          <span id="dataStatus" class="px-2.5 py-1 rounded-full bg-amber-100 text-amber-800 font-medium">載入中 Loading...</span>
-        </div>
-        <div>
-          <label class="cursor-pointer bg-slate-100 hover:bg-slate-200 text-slate-700 px-3 py-1.5 rounded transition">
-            手動上傳 Upload LPR.xlsx
-            <input type="file" id="fileInput" accept=".xlsx, .xls" class="hidden">
-          </label>
-        </div>
-      </div>
+      <!-- 隱藏的檔案上傳輸入點，供後台自動載入 -->
+      <input type="file" id="fileInput" accept=".xlsx, .xls" class="hidden">
     </header>
 
     <!-- 步驟 1: 電話查詢 -->
-    <section class="mb-6 bg-white rounded-xl p-6 shadow-sm border border-slate-200 text-center">
-      <h2 class="text-lg sm:text-xl font-bold text-slate-900 mb-1 flex items-center justify-center gap-2">
-        <span class="w-7 h-7 rounded-full bg-blue-600 text-white flex items-center justify-center text-sm">1</span>
-        第一個步驟，請輸入家長的電話號碼
-      </h2>
-      <p class="text-slate-500 text-sm mb-4">Please enter a parent's phone number.</p>
+    <section class="mb-6 bg-white rounded-xl p-6 sm:p-8 shadow-sm border border-slate-200 text-center">
+      <div class="mb-5">
+        <h2 class="text-2xl sm:text-3xl font-extrabold text-slate-900 mb-2">
+          第一個步驟：請輸入家長的電話號碼
+        </h2>
+        <p class="text-xl sm:text-2xl font-bold text-blue-600">
+          Please enter a parent's phone number.
+        </p>
+      </div>
 
       <div class="flex flex-col sm:flex-row gap-3 max-w-xl mx-auto">
-        <input type="tel" id="phoneInput" placeholder="請輸入電話 Please enter phone (e.g. 0912345678)" 
-               class="flex-1 border border-slate-300 rounded-lg px-4 py-2.5 text-center sm:text-left focus:outline-none focus:ring-2 focus:ring-blue-500">
+        <input type="tel" id="phoneInput" placeholder="請輸入電話 Please enter phone" 
+               class="flex-1 border border-slate-300 rounded-lg px-4 py-3 text-lg text-center sm:text-left focus:outline-none focus:ring-2 focus:ring-blue-500">
         <button onclick="searchStudent()" 
-                class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2.5 rounded-lg font-medium transition">
+                class="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 rounded-lg font-bold text-lg transition">
           查詢 Search
         </button>
       </div>
     </section>
 
-    <!-- 步驟 2: 帶出學生與填報車牌 -->
-    <section id="resultSection" class="hidden mb-6 bg-white rounded-xl p-6 shadow-sm border border-slate-200">
-      <h2 class="text-base sm:text-lg font-bold text-slate-900 mb-1 flex items-center gap-2">
-        <span class="w-6 h-6 rounded-full bg-blue-600 text-white flex items-center justify-center text-xs">2</span>
-        確認學生與填報車牌 Confirm Student Info & Plate
+    <!-- 步驟 2: 學生姓名帶出區 (預設顯示空白狀態) -->
+    <section class="mb-6 bg-white rounded-xl p-6 shadow-sm border border-slate-200">
+      <h2 class="text-lg font-bold text-slate-900 mb-3 flex items-center gap-2">
+        <span class="w-7 h-7 rounded-full bg-blue-600 text-white flex items-center justify-center text-sm">2</span>
+        第二個步驟：學生姓名 Student Name
       </h2>
-      <p class="text-xs text-slate-500 mb-3">若為同家長之手動手足，將一併顯示並記錄。</p>
 
-      <!-- 查到的學生清單 -->
-      <div id="studentList" class="space-y-2 mb-4"></div>
-
-      <!-- 車牌輸入欄位 -->
-      <div class="bg-slate-50 p-4 rounded-lg border border-slate-200">
-        <label for="plateInput" class="block font-medium text-slate-700 mb-2">接送車牌號碼 License Plate Number</label>
-        <div class="flex flex-col sm:flex-row gap-3">
-          <input type="text" id="plateInput" placeholder="例如 e.g. ABC-1234" 
-                 class="flex-1 border border-slate-300 rounded-lg px-4 py-2.5 uppercase focus:outline-none focus:ring-2 focus:ring-blue-500">
-          <button onclick="submitForm()" 
-                  class="bg-emerald-600 hover:bg-emerald-700 text-white px-6 py-2.5 rounded-lg font-medium transition">
-            提交填報 Submit
-          </button>
-        </div>
+      <!-- 學生姓名顯示框 -->
+      <div id="studentList" class="min-h-[70px] p-4 bg-slate-50 rounded-lg border border-dashed border-slate-300 flex items-center justify-center text-slate-400 font-medium">
+        請先於步驟一輸入電話號碼進行查詢 Please search phone number in Step 1 first.
       </div>
     </section>
 
-    <!-- 步驟 3: 已填報列表與匯出 -->
+    <!-- 步驟 3: 輸入車牌 (提供 5 組欄位) -->
+    <section class="mb-6 bg-white rounded-xl p-6 shadow-sm border border-slate-200">
+      <h2 class="text-lg font-bold text-slate-900 mb-1 flex items-center gap-2">
+        <span class="w-7 h-7 rounded-full bg-blue-600 text-white flex items-center justify-center text-sm">3</span>
+        第三個步驟：輸入車牌號碼 License Plate Entry
+      </h2>
+      <p class="text-xs text-slate-500 mb-4">最多可填報 5 組車牌 Fill up to 5 license plates</p>
+
+      <!-- 5 個車牌輸入欄位 -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 mb-6">
+        <div>
+          <label class="block text-xs font-semibold text-slate-600 mb-1">車牌 1 / Plate 1</label>
+          <input type="text" id="plate1" placeholder="例: ABC-1234" class="plate-input w-full border border-slate-300 rounded-lg px-3 py-2 uppercase focus:ring-2 focus:ring-blue-500">
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-slate-600 mb-1">車牌 2 / Plate 2</label>
+          <input type="text" id="plate2" placeholder="選填 Optional" class="plate-input w-full border border-slate-300 rounded-lg px-3 py-2 uppercase focus:ring-2 focus:ring-blue-500">
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-slate-600 mb-1">車牌 3 / Plate 3</label>
+          <input type="text" id="plate3" placeholder="選填 Optional" class="plate-input w-full border border-slate-300 rounded-lg px-3 py-2 uppercase focus:ring-2 focus:ring-blue-500">
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-slate-600 mb-1">車牌 4 / Plate 4</label>
+          <input type="text" id="plate4" placeholder="選填 Optional" class="plate-input w-full border border-slate-300 rounded-lg px-3 py-2 uppercase focus:ring-2 focus:ring-blue-500">
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-slate-600 mb-1">車牌 5 / Plate 5</label>
+          <input type="text" id="plate5" placeholder="選填 Optional" class="plate-input w-full border border-slate-300 rounded-lg px-3 py-2 uppercase focus:ring-2 focus:ring-blue-500">
+        </div>
+      </div>
+
+      <div class="text-center">
+        <button onclick="submitForm()" class="bg-emerald-600 hover:bg-emerald-700 text-white text-lg px-10 py-3 rounded-lg font-bold transition shadow-sm">
+          提交填報 Submit
+        </button>
+      </div>
+    </section>
+
+    <!-- 步驟 4: 已填報列表與匯出 -->
     <section class="bg-white rounded-xl p-6 shadow-sm border border-slate-200">
       <div class="flex items-center justify-between mb-4 flex-wrap gap-2">
         <h2 class="text-base sm:text-lg font-bold text-slate-900 flex items-center gap-2">
-          <span class="w-6 h-6 rounded-full bg-blue-600 text-white flex items-center justify-center text-xs">3</span>
+          <span class="w-6 h-6 rounded-full bg-blue-600 text-white flex items-center justify-center text-xs">4</span>
           已填報紀錄 Registration Records
         </h2>
         <div class="flex gap-2">
@@ -126,13 +142,12 @@
     let currentMatchedStudents = [];
     let submittedRecords = JSON.parse(localStorage.getItem('lpr_records') || '[]');
 
-    // 頁面載入時自動讀取同目錄下的 LPR.xlsx
     window.addEventListener('DOMContentLoaded', () => {
       fetchData();
       renderTable();
     });
 
-    // 清理電話格式 (去除非數字與補齊比較規格)
+    // 清理電話格式
     function cleanPhone(p) {
       if (!p) return '';
       let s = String(p).replace(/\D/g, '');
@@ -148,8 +163,7 @@
         const arrayBuffer = await response.arrayBuffer();
         parseExcel(arrayBuffer);
       } catch (err) {
-        document.getElementById('dataStatus').innerText = '請手動上傳 Please upload LPR.xlsx';
-        document.getElementById('dataStatus').className = 'px-2.5 py-1 rounded-full bg-amber-100 text-amber-800 font-medium';
+        console.warn('請確認同目錄下有 LPR.xlsx 檔案');
       }
     }
 
@@ -160,9 +174,6 @@
       const firstSheet = workbook.SheetNames[0];
       const worksheet = workbook.Sheets[firstSheet];
       studentData = XLSX.utils.sheet_to_json(worksheet);
-
-      document.getElementById('dataStatus').innerText = `已載入 ${studentData.length} 筆資料 (${studentData.length} Loaded)`;
-      document.getElementById('dataStatus').className = 'px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-800 font-medium';
     }
 
     // 手動上傳檔案處理
@@ -174,10 +185,11 @@
       reader.readAsArrayBuffer(file);
     });
 
-    // 查詢學生 (支援 Dphone 或 Mphone 比對)
+    // 查詢學生
     function searchStudent() {
       const rawInput = document.getElementById('phoneInput').value.trim();
       const searchKey = cleanPhone(rawInput);
+      const studentList = document.getElementById('studentList');
 
       if (!searchKey) {
         alert('請輸入電話號碼！ Please enter a phone number.');
@@ -190,62 +202,76 @@
         return dPhone === searchKey || mPhone === searchKey;
       });
 
-      const resultSection = document.getElementById('resultSection');
-      const studentList = document.getElementById('studentList');
-
       if (currentMatchedStudents.length === 0) {
-        alert('查無對應的家長電話資料，請再次確認號碼。 No matching records found.');
-        resultSection.classList.add('hidden');
+        studentList.className = "min-h-[70px] p-4 bg-rose-50 rounded-lg border border-rose-200 text-rose-600 font-medium text-center";
+        studentList.innerText = '查無對應的家長電話資料，請再次確認號碼。 No matching records found.';
         return;
       }
 
-      // 格式化顯示：中文姓名 + 空格 + FName + 空格 + LName
+      // 帶出學生姓名 (中文 + 空格 + FName + 空格 + LName)
+      studentList.className = "space-y-2";
       studentList.innerHTML = currentMatchedStudents.map(s => {
         const fullName = `${s['姓名']} ${s['FName']} ${s['LName']}`;
         return `
           <div class="p-3 bg-blue-50 border border-blue-200 rounded-lg flex items-center justify-between">
-            <div>
-              <span class="inline-block bg-blue-600 text-white text-xs px-2 py-0.5 rounded font-medium mr-2">${s['HR']}</span>
-              <span class="font-bold text-slate-800">${fullName}</span>
-              <span class="text-xs text-slate-500 ml-2">(ID: ${s['學號']})</span>
+            <div class="flex items-center gap-3">
+              <span class="bg-blue-600 text-white text-sm px-2.5 py-1 rounded font-bold">${s['HR']}</span>
+              <span class="font-bold text-slate-800 text-lg">${fullName}</span>
             </div>
+            <span class="text-xs text-slate-500 font-mono">(ID: ${s['學號']})</span>
           </div>
         `;
       }).join('');
-
-      document.getElementById('plateInput').value = '';
-      resultSection.classList.remove('hidden');
     }
 
     // 提交填報資料
     function submitForm() {
-      const plate = document.getElementById('plateInput').value.trim().toUpperCase();
-      if (!plate) {
-        alert('請輸入車牌號碼！ Please enter the license plate number.');
+      if (currentMatchedStudents.length === 0) {
+        alert('請先在步驟一輸入電話並成功查詢學生！ Please search student first.');
+        return;
+      }
+
+      // 收集 5 個欄位中已填寫的車牌
+      const plateInputs = [
+        document.getElementById('plate1').value.trim().toUpperCase(),
+        document.getElementById('plate2').value.trim().toUpperCase(),
+        document.getElementById('plate3').value.trim().toUpperCase(),
+        document.getElementById('plate4').value.trim().toUpperCase(),
+        document.getElementById('plate5').value.trim().toUpperCase()
+      ].filter(p => p !== '');
+
+      if (plateInputs.length === 0) {
+        alert('請至少輸入一組車牌號碼！ Please enter at least one license plate number.');
         return;
       }
 
       const rawPhone = document.getElementById('phoneInput').value.trim();
       const timeStr = new Date().toLocaleString('zh-TW');
 
+      // 針對每個學生與每個填寫的車牌新增紀錄
       currentMatchedStudents.forEach(s => {
         const fullName = `${s['姓名']} ${s['FName']} ${s['LName']}`;
-        submittedRecords.push({
-          '班級': s['HR'],
-          '學號': s['學號'],
-          '學生姓名': fullName,
-          '填報電話': rawPhone,
-          '車牌號碼': plate,
-          '填報時間': timeStr
+        plateInputs.forEach(plate => {
+          submittedRecords.push({
+            '班級': s['HR'],
+            '學號': s['學號'],
+            '學生姓名': fullName,
+            '填報電話': rawPhone,
+            '車牌號碼': plate,
+            '填報時間': timeStr
+          });
         });
       });
 
       localStorage.setItem('lpr_records', JSON.stringify(submittedRecords));
       renderTable();
 
-      alert(`成功儲存 ${currentMatchedStudents.length} 筆填報資料！ Saved successfully!`);
-      document.getElementById('resultSection').classList.add('hidden');
-      document.getElementById('phoneInput').value = '';
+      alert(`成功儲存填報資料！ Saved successfully!`);
+      
+      // 清空車牌欄位
+      for (let i = 1; i <= 5; i++) {
+        document.getElementById(`plate${i}`).value = '';
+      }
     }
 
     // 渲染表格內容
